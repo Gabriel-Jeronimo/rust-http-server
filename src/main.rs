@@ -16,8 +16,6 @@ fn handle(mut stream: TcpStream) -> Result<()> {
 
     let request = httpRequestToObject(&String::from_utf8_lossy(data))?;
 
-    println!("{}", request.route);
-
     let content = fs::read_to_string(format!("www/{}", request.route));
 
     let response: String;
