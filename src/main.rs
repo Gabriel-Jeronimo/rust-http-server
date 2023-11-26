@@ -16,6 +16,8 @@ fn handle(mut stream: TcpStream) -> Result<()> {
 
     let request = httpRequestToObject(&String::from_utf8_lossy(data))?;
 
+    println!("{}", request.route);
+
     let content = fs::read_to_string(format!("www/{}", request.route));
 
     let response: String;
@@ -25,7 +27,7 @@ fn handle(mut stream: TcpStream) -> Result<()> {
         Err(e) => response = "HTTP/1.1 404 Not Found\r\n".to_string(),
     }
 
-    stream.write(response.as_bytes());
+    let _ = stream.write(response.as_bytes());
 
     Ok(())
 }
@@ -45,9 +47,14 @@ fn main() -> Result<()> {
 
 fn httpRequestToObject(request: &str) -> Result<Request> {
     let splited: Vec<&str> = request.split(" ").collect();
+    let mut route = splited[1];
+
+    if route == "/" {
+        route = "index.html";
+    }
 
     Ok(Request {
         httpVerb: splited[0].to_string(),
-        route: splited[1].replace("/", "").to_string(),
+        route: route.replace("/", "").to_string(),
     })
 }
