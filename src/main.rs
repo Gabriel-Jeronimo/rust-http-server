@@ -1,4 +1,5 @@
 use std::{
+    fs,
     io::Read,
     io::{Result, Write},
     net::{TcpListener, TcpStream},
@@ -15,12 +16,16 @@ fn handle(mut stream: TcpStream) -> Result<()> {
 
     let request = httpRequestToObject(&String::from_utf8_lossy(data))?;
 
-    // println!("{}", request.route);
+    println!("{}", request.route);
 
-    let response = format!(
-        "HTTP/1.1 200 OK\r\n\r\nRequested path: {}\r\n",
-        request.route
-    );
+    let content = fs::read_to_string(format!("www/{}", request.route));
+
+    let response: String;
+
+    match content {
+        Ok(v) => response = format!("HTTP/1.1 200 OK\r\n\r\n{}\r\n", v),
+        Err(e) => response = "HTTP/1.1 404 Not Found\r\n".to_string(),
+    }
 
     stream.write(response.as_bytes());
 
@@ -45,6 +50,6 @@ fn httpRequestToObject(request: &str) -> Result<Request> {
 
     Ok(Request {
         httpVerb: splited[0].to_string(),
-        route: splited[1].to_string(),
+        route: splited[1].replace("/", "").to_string(),
     })
 }
