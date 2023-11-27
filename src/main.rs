@@ -7,7 +7,6 @@ use std::{
 };
 
 struct Request {
-    httpVerb: String,
     route: String,
 }
 
@@ -23,7 +22,10 @@ fn handle(mut stream: TcpStream) -> Result<()> {
 
     match content {
         Ok(v) => response = format!("HTTP/1.1 200 OK\r\n\r\n{}\r\n", v),
-        Err(e) => response = "HTTP/1.1 404 Not Found\r\n".to_string(),
+        Err(_e) => {
+            let not_found_html = fs::read_to_string("notfound.html");
+            response = format!("HTTP/1.1 404 Not Found\r\n{}\r\n", not_found_html.unwrap());
+        }
     }
 
     let _ = stream.write(response.as_bytes());
@@ -35,10 +37,11 @@ fn main() -> Result<()> {
     const PORT: &str = "8080";
 
     let listener = TcpListener::bind(format!("{}:{}", "localhost", PORT))?;
+    println!("app listening on port {}", PORT);
 
     for stream in listener.incoming() {
         thread::spawn(|| {
-            handle(stream.unwrap());
+            let _ = handle(stream.unwrap());
         });
     }
 
@@ -54,7 +57,6 @@ fn http_request_to_object(request: &str) -> Result<Request> {
     }
 
     Ok(Request {
-        httpVerb: splited[0].to_string(),
         route: route.replace("/", "").to_string(),
     })
 }
