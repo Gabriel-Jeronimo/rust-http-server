@@ -3,6 +3,7 @@ use std::{
     io::Read,
     io::{Result, Write},
     net::{TcpListener, TcpStream},
+    thread,
 };
 
 struct Request {
@@ -14,9 +15,7 @@ fn handle(mut stream: TcpStream) -> Result<()> {
     let data = &mut [0; 128];
     stream.read(data)?;
 
-    let request = httpRequestToObject(&String::from_utf8_lossy(data))?;
-
-    println!("{}", request.route);
+    let request = http_request_to_object(&String::from_utf8_lossy(data))?;
 
     let content = fs::read_to_string(format!("www/{}", request.route));
 
@@ -37,15 +36,16 @@ fn main() -> Result<()> {
 
     let listener = TcpListener::bind(format!("{}:{}", "localhost", PORT))?;
 
-    println!("app listening on port {}", PORT);
     for stream in listener.incoming() {
-        handle(stream?);
+        thread::spawn(|| {
+            handle(stream.unwrap());
+        });
     }
 
     Ok(())
 }
 
-fn httpRequestToObject(request: &str) -> Result<Request> {
+fn http_request_to_object(request: &str) -> Result<Request> {
     let splited: Vec<&str> = request.split(" ").collect();
     let mut route = splited[1];
 
