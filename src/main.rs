@@ -57,6 +57,6 @@ fn http_request_to_object(request: &str) -> Result<Request> {
     }
 
     Ok(Request {
-        route: route.replace("/", "").to_string(),
+        route: route.to_string(),
     })
 }
