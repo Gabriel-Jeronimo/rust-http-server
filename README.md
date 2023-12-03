@@ -2,7 +2,7 @@
 
 A simple HTTP server implemented in Rust that serves HTML files located within the `www` folder.
 
-## Usage
+## Instructions
 
 ### Pre-requisites
 
